@@ -1,0 +1,13 @@
+THIS IS A REMINDER FOR ME
+
+Deliver in npm, unpkg, cdn, ... https://docs.github.com/en/packages/quickstart
+Accept push, issues, ...
+Version management
+Test suite
+Test with older OL versions
+css generated from sass
+Test with module.html without vite
+Test & example custom-provider
+Easy ol version change
+Ol version marking on tests
+Work with Jonatas Walker & Kirtan Desai to define the way the take over can take place

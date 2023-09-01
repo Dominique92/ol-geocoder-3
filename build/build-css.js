@@ -1,4 +1,7 @@
-const { writeFileSync, readFileSync } = require('fs');
+const {
+  writeFileSync,
+  readFileSync
+} = require('fs');
 const boxen = require('boxen');
 const chalk = require('chalk');
 const gzip = require('gzip-size');
@@ -18,8 +21,7 @@ var banner = readFileSync('./build/banner.js', 'utf-8')
   .replace('${version}', pkg.version)
   .replace('${time}', new Date());
 
-sass.render(
-  {
+sass.render({
     file: './src/sass/main.scss',
     importer: jsonImporter(),
   },
@@ -28,9 +30,13 @@ sass.render(
 
     const prefixer = postcss([
       autoprefixer(),
-      postcssReport({ clearMessages: true }),
+      postcssReport({
+        clearMessages: true
+      }),
     ]);
-    prefixer.process(result.css, { from: undefined }).then((res) => {
+    prefixer.process(result.css, {
+      from: undefined
+    }).then((res) => {
       res.warnings().forEach((warn) => {
         console.warn(warn.toString());
       });
@@ -63,8 +69,9 @@ sass.render(
               '\n',
               chalk.green.bold('Now: '),
               chalk.yellow.bold(new Date()),
-            ].join(''),
-            { padding: 1 }
+            ].join(''), {
+              padding: 1
+            }
           )
         );
       });

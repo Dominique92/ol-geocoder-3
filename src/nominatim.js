@@ -2,10 +2,13 @@ import LayerVector from 'ol/layer/Vector';
 import SourceVector from 'ol/source/Vector';
 import Point from 'ol/geom/Point';
 import Feature from 'ol/Feature';
-import proj from 'ol/proj';
-
-import { VARS, TARGET_TYPE, PROVIDERS, EVENT_TYPE } from '../konstants';
-
+import * as proj from 'ol/proj';
+import {
+  VARS,
+  TARGET_TYPE,
+  PROVIDERS,
+  EVENT_TYPE
+} from '../konstants';
 import {
   hasClass,
   addClass,
@@ -14,13 +17,17 @@ import {
   template,
   removeAllChildren,
 } from './helpers/dom';
-import { Photon } from './providers/photon';
-import { OpenStreet } from './providers/osm';
-import { MapQuest } from './providers/mapquest';
-import { Bing } from './providers/bing';
-import { OpenCage } from './providers/opencage';
-import { randomId, flyTo } from './helpers/mix';
-import { json } from './helpers/ajax';
+import Photon from './providers/photon';
+import OpenStreet from './providers/osm';
+import MapQuest from './providers/mapquest';
+import Bing from './providers/bing';
+import OpenCage from './providers/opencage';
+import {
+  randomId
+} from './helpers/mix';
+import {
+  json
+} from './helpers/ajax';
 
 const klasses = VARS.cssClasses;
 
@@ -39,21 +46,24 @@ export class Nominatim {
     this.layer = new LayerVector({
       name: this.layerName,
       source: new SourceVector(),
+      displayInLayerSwitcher: false,
     });
 
     this.options = base.options;
     // provider is either the name of a built-in provider as a string or an
     // object that implements the provider API
     this.options.provider =
-      typeof this.options.provider === 'string'
-        ? this.options.provider.toLowerCase()
-        : this.options.provider;
+      typeof this.options.provider === 'string' ?
+      this.options.provider.toLowerCase() :
+      this.options.provider;
     this.provider = this.newProvider();
 
     this.els = els;
     this.lastQuery = '';
     this.container = this.els.container;
-    this.registeredListeners = { mapClick: false };
+    this.registeredListeners = {
+      mapClick: false
+    };
     this.setListeners();
   }
 
@@ -68,22 +78,21 @@ export class Nominatim {
     };
     const query = (evt) => {
       const value = evt.target.value.trim();
-      const hit = evt.key
-        ? evt.key === 'Enter'
-        : evt.which
-        ? evt.which === 13
-        : evt.keyCode
-        ? evt.keyCode === 13
-        : false;
+      const hit = evt.key ?
+        evt.key === 'Enter' :
+        evt.which ?
+        evt.which === 13 :
+        evt.keyCode ?
+        evt.keyCode === 13 :
+        false;
 
       if (hit) {
         evt.preventDefault();
         this.query(value);
       }
     };
-    // eslint-disable-next-line unicorn/consistent-function-scoping
     const stopBubbling = (evt) => evt.stopPropagation();
-    const reset = (evt) => {
+    const reset = () => {
       this.els.input.focus();
       this.els.input.value = '';
       this.lastQuery = '';
@@ -93,9 +102,9 @@ export class Nominatim {
     const handleValue = (evt) => {
       const value = evt.target.value.trim();
 
-      value.length !== 0
-        ? removeClass(this.els.reset, klasses.hidden)
-        : addClass(this.els.reset, klasses.hidden);
+      value.length !== 0 ?
+        removeClass(this.els.reset, klasses.hidden) :
+        addClass(this.els.reset, klasses.hidden);
 
       if (this.options.autoComplete && value !== lastQuery) {
         lastQuery = value;
@@ -129,6 +138,7 @@ export class Nominatim {
       key: this.options.key,
       lang: this.options.lang,
       countrycodes: this.options.countrycodes,
+      viewbox: this.options.viewbox,
       limit: this.options.limit,
     });
 
@@ -163,7 +173,7 @@ export class Nominatim {
           this.listenMapClick();
         }
       })
-      .catch((err) => {
+      .catch(() => {
         removeClass(this.els.reset, klasses.spin);
 
         const li = createElement('li', '<h5>Error! No internet connection?</h5>');
@@ -210,11 +220,13 @@ export class Nominatim {
     const projection = map.getView().getProjection();
     const coord = proj.transform(coord_, 'EPSG:4326', projection);
 
-    let { bbox } = place;
+    let {
+      bbox
+    } = place;
 
     if (bbox) {
       bbox = proj.transformExtent(
-        [bbox[2], bbox[1], bbox[3], bbox[0]], // NSWE -> WSEN
+        [parseFloat(bbox[2]), parseFloat(bbox[0]), parseFloat(bbox[3]), parseFloat(bbox[1])], // SNWE -> WSEN
         'EPSG:4326',
         projection
       );
@@ -228,7 +240,7 @@ export class Nominatim {
 
     this.options.keepOpen === false && this.clearResults(true);
 
-    if (this.options.preventDefault === true) {
+    if (this.options.preventDefault === true || this.options.preventMarker === true) {
       this.Base.dispatchEvent({
         type: EVENT_TYPE.ADDRESSCHOSEN,
         address,
@@ -237,12 +249,6 @@ export class Nominatim {
         place,
       });
     } else {
-      if (bbox) {
-        map.getView().fit(bbox, { duration: 500 });
-      } else {
-        flyTo(map, coord);
-      }
-
       const feature = this.createFeature(coord, address);
 
       this.Base.dispatchEvent({
@@ -253,6 +259,20 @@ export class Nominatim {
         bbox,
         place,
       });
+    }
+
+    if (this.options.preventDefault !== true && this.options.preventPanning !== true) {
+      if (bbox) {
+        map.getView().fit(bbox, {
+          duration: 500,
+        });
+      } else {
+        map.getView().animate({
+          center: coord,
+          resolution: this.options.defaultFlyResolution || 1,
+          duration: 500,
+        });
+      }
     }
   }
 
@@ -296,7 +316,7 @@ export class Nominatim {
   newProvider() {
     switch (this.options.provider) {
       case PROVIDERS.OSM:
-        return new OpenStreet();
+        return new OpenStreet(this.options);
       case PROVIDERS.MAPQUEST:
         return new MapQuest();
       case PROVIDERS.PHOTON:
@@ -337,8 +357,7 @@ export class Nominatim {
 
     // one-time fire click
     mapElement.addEventListener(
-      'click',
-      {
+      'click', {
         handleEvent(evt) {
           that.clearResults(true);
           mapElement.removeEventListener(evt.type, this, false);
@@ -350,9 +369,9 @@ export class Nominatim {
   }
 
   clearResults(collapse) {
-    collapse && this.options.targetType === TARGET_TYPE.GLASS
-      ? this.collapse()
-      : removeAllChildren(this.els.result);
+    collapse && this.options.targetType === TARGET_TYPE.GLASS ?
+      this.collapse() :
+      removeAllChildren(this.els.result);
   }
 
   getSource() {

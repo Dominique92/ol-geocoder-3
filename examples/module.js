@@ -1,3 +1,5 @@
+import Geocoder from '../src/base';
+
 const olview = new ol.View({
   center: [0, 0],
   zoom: 3,
@@ -8,17 +10,19 @@ const olview = new ol.View({
 const baseLayer = new ol.layer.Tile({
   source: new ol.source.OSM(),
 });
+
 const map = new ol.Map({
   target: document.querySelector('#map'),
   view: olview,
   layers: [baseLayer],
 });
+
 const popup = new ol.Overlay.Popup();
 
 // Instantiate with some options and add the Control
 const geocoder = new Geocoder('nominatim', {
-  provider: 'photon',
-  targetType: 'glass-button',
+  provider: 'osm',
+  targetType: 'text-input',
   lang: 'en',
   placeholder: 'Search for ...',
   limit: 5,

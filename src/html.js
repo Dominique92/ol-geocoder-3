@@ -1,6 +1,12 @@
-import { VARS, TARGET_TYPE } from '../konstants';
+import '../src/html.css';
 
-import { createElement } from './helpers/dom';
+import {
+  VARS,
+  TARGET_TYPE
+} from '../konstants';
+import {
+  createElement
+} from './helpers/dom';
 
 const klasses = VARS.cssClasses;
 
@@ -10,10 +16,10 @@ const klasses = VARS.cssClasses;
 export class Html {
   /**
    * @constructor
-   * @param {Function} base Base class.
+   * @param {object} options Options.
    */
-  constructor(base) {
-    this.options = base.options;
+  constructor(options) {
+    this.options = options;
     this.els = this.createControl();
   }
 
@@ -25,7 +31,10 @@ export class Html {
     if (this.options.targetType === TARGET_TYPE.INPUT) {
       containerClass = `${klasses.namespace} ${klasses.inputText.container}`;
       container = createElement(
-        ['div', { id: VARS.containerId, classname: containerClass }],
+        ['div', {
+          id: VARS.containerId,
+          classname: containerClass
+        }],
         Html.input
       );
       elements = {
@@ -38,7 +47,10 @@ export class Html {
     } else {
       containerClass = `${klasses.namespace} ${klasses.glass.container}`;
       container = createElement(
-        ['div', { id: VARS.containerId, classname: containerClass }],
+        ['div', {
+          id: VARS.containerId,
+          classname: containerClass
+        }],
         Html.glass
       );
       elements = {

@@ -1,12 +1,21 @@
 import Control from 'ol/control/Control';
 import Style from 'ol/style/Style';
 import Icon from 'ol/style/Icon';
-
-import { CONTROL_TYPE, DEFAULT_OPTIONS, FEATURE_SRC } from '../konstants';
-
-import { Html } from './html';
-import { Nominatim } from './nominatim';
-import { assert, mergeOptions } from './helpers/mix';
+import {
+  CONTROL_TYPE,
+  DEFAULT_OPTIONS,
+  FEATURE_SRC
+} from '../konstants';
+import {
+  Html
+} from './html';
+import {
+  Nominatim
+} from './nominatim';
+import {
+  assert,
+  mergeOptions
+} from './helpers/mix';
 
 /**
  * @class Base
@@ -19,8 +28,6 @@ export default class Base extends Control {
    * @param {object} options Options.
    */
   constructor(type = CONTROL_TYPE.NOMINATIM, options = {}) {
-    if (!(this instanceof Base)) return new Base();
-
     assert(typeof type === 'string', '@param `type` should be string!');
     assert(
       type === CONTROL_TYPE.NOMINATIM || type === CONTROL_TYPE.REVERSE,
@@ -30,23 +37,36 @@ export default class Base extends Control {
     assert(typeof options === 'object', '@param `options` should be object!');
 
     DEFAULT_OPTIONS.featureStyle = [
-      new Style({ image: new Icon({ scale: 0.7, src: FEATURE_SRC }) }),
+      new Style({
+        image: new Icon({
+          scale: 0.7,
+          src: FEATURE_SRC
+        })
+      }),
     ];
 
-    this.options = mergeOptions(DEFAULT_OPTIONS, options);
-    this.container = undefined;
+    let container, $nominatim;
 
-    let $nominatim;
-
-    const $html = new Html(this);
+    const $html = new Html(options);
 
     if (type === CONTROL_TYPE.NOMINATIM) {
-      this.container = $html.els.container;
+      container = $html.els.container;
+    }
+
+    super({
+      element: container,
+      ...options,
+    });
+
+    if (!(this instanceof Base)) return new Base();
+
+    this.options = mergeOptions(DEFAULT_OPTIONS, options);
+    this.container = container;
+
+    if (type === CONTROL_TYPE.NOMINATIM) {
       $nominatim = new Nominatim(this, $html.els);
       this.layer = $nominatim.layer;
     }
-
-    super({ element: this.container });
   }
 
   /**

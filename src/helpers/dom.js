@@ -1,6 +1,7 @@
-/* eslint-disable optimize-regex/optimize-regex */
 /* eslint-disable prefer-named-capture-group */
-import { isNumeric } from './mix';
+import {
+  isNumeric
+} from './mix';
 
 /**
  * @param {Element|Array<Element>} element DOM node or array of nodes.
@@ -151,7 +152,9 @@ export function createElement(node, html) {
     if (node[1].classname) elem.className = node[1].classname;
 
     if (node[1].attr) {
-      const { attr } = node[1];
+      const {
+        attr
+      } = node[1];
 
       if (Array.isArray(attr)) {
         let i = -1;
@@ -179,7 +182,6 @@ export function createElement(node, html) {
 }
 
 function classRegex(classname) {
-  // eslint-disable-next-line security/detect-non-literal-regexp
   return new RegExp(`(^|\\s+) ${classname} (\\s+|$)`, 'u');
 }
 
